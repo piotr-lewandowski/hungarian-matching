@@ -27,6 +27,10 @@ try
 
     var text = writer.Write(matching);
     Console.Write(text);
+
+    var outputFile = new FileInfo(file.Name + "-output");
+    using var textWriter = outputFile.CreateText();
+    textWriter.Write(text);
 }
 catch (UnauthorizedAccessException)
 {
