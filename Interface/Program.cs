@@ -1,48 +1,46 @@
 ﻿using Interface;
 using Logic;
-using System.CommandLine.Builder;
-using System.CommandLine.Help;
-using System.CommandLine.Parsing;
-using System.CommandLine;
 
-var fileArgument = new Argument<FileInfo>(
-    name: "filepath",
-    description: "File containing the input graph."
-);
-
-fileArgument.AddValidator(result =>
+if (args.Length != 1)
 {
-    var fileInfo = result.GetValueForArgument<FileInfo>(fileArgument);
-    if (!fileInfo.Exists)
-    {
-        result.ErrorMessage = $"File {fileInfo.FullName} does not exist.";
-    }
-});
+    Console.Error.WriteLine("Wrong number of arguments, please provide the path of the input file.");
+    return;
+}
 
-var rootCommand = new RootCommand(
-    "Graph colouring of arbitrary graphs using First Fit, Largest First, Smallest Last or Maximum Cardinality Search."
-) { fileArgument };
+var fileArg = args[0];
+var file = new FileInfo(fileArg);
 
-rootCommand.SetHandler((file) =>
+if(!file.Exists) 
 {
-    var reader = new GraphReader();
-    var writer = new MatchingWriter();
-    var error = Console.Error;
+    Console.Error.WriteLine("Input file doesn't exist.");
+    return;
+}
 
-    try
-    {
-        var graph = reader.ReadSingle(file.FullName);
+var reader = new GraphReader();
+var writer = new MatchingWriter();
 
-        var matching = new RandomMatching(graph);
+try
+{
+    var graph = reader.ReadSingle(file.FullName);
 
-        var text = writer.Write(matching);
-        Console.Write(text);
-    }
-    catch (System.Exception)
-    {
-        error.WriteLine("Input graph was not in a correct format.");
-    }
+    var matching = new RandomMatching(graph);
 
-}, fileArgument);
-
-await rootCommand.InvokeAsync(args);
+    var text = writer.Write(matching);
+    Console.Write(text);
+}
+catch (UnauthorizedAccessException)
+{
+    Console.Error.WriteLine("Could not access input file.");
+}
+catch (FormatException)
+{
+    Console.Error.WriteLine("Input file was not in a correct format.");
+}
+catch (OverflowException)
+{
+    Console.Error.WriteLine("Input file was not in a correct format.");
+}
+catch (ArgumentException)
+{
+    Console.Error.WriteLine("Input file was not in a correct format.");
+}
