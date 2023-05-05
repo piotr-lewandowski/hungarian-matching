@@ -28,7 +28,7 @@ try
     var text = writer.Write(matching);
     Console.Write(text);
 
-    var outputFile = new FileInfo(file.Name + "-output");
+    var outputFile = new FileInfo(Path.GetFileNameWithoutExtension(file.Name) + "-output.txt");
     using var textWriter = outputFile.CreateText();
     textWriter.Write(text);
 }
