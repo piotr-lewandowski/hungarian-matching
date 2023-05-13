@@ -23,9 +23,9 @@ try
 {
     var graph = reader.ReadSingle(file.FullName);
 
-    var matching = new RandomMatching(graph);
+    var matching = new HungarianMatching();
 
-    var text = writer.Write(matching);
+    var text = writer.Write(matching.Match(graph));
     Console.Write(text);
 
     var outputFile = new FileInfo(Path.GetFileNameWithoutExtension(file.Name) + "-output.txt");
