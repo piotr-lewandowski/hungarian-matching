@@ -2,6 +2,15 @@ using System.Diagnostics;
 
 namespace Logic;
 
+/// <summary>
+/// Intermediate results of our computation.
+/// </summary>
+/// <param name="IndependentInRow">Position of an independent zero in a given row, -1 if no such element exists.</param>
+/// <param name="IndependentInColumn">Position of an independent zero in a given column, -1 if no such element exists.</param>
+/// <param name="Graph">Graph that we're computing the matching for.</param>
+/// <param name="CoverColumns">Whether given column is a part of current zeros cover.</param>
+/// <param name="CoverRows">Whether given row is a part of current zeros cover.</param>
+/// <param name="MarkedInRow">Where is the marked element in a given row, -1 if no such element exists.</param>
 public record CrossOutResult(
     int[] IndependentInRow,
     int[] IndependentInColumn,
@@ -11,7 +20,18 @@ public record CrossOutResult(
     int[] MarkedInRow
 )
 {
-    public int CoveredCount => CoverColumns.Sum(b => b ? 1 : 0) + CoverRows.Sum(b => b ? 1 : 0);
+    public int CountCovered()
+    {
+        var sum = 0;
+        for(int i=0; i<Graph.VertexCount; ++i)
+        {
+            if(IndependentInColumn[i] != -1)
+            {
+                sum++;
+            }
+        }
+        return sum;
+    }
 
 }
 
@@ -27,7 +47,7 @@ public class HungarianMatching
 
         // -1 - means none chosen in that row
         var independentInRow = new int[n];
-        var IndependentInColumn = new int[n];
+        var independentInColumn = new int[n];
 
         var markedInRow = new int[n];
 
@@ -35,43 +55,42 @@ public class HungarianMatching
         {
             coverColumns[i] = false;
             coverRows[i] = false;
-            IndependentInColumn[i] = -1;
+            independentInColumn[i] = -1;
             independentInRow[i] = -1;
             markedInRow[i] = -1;
         }
 
-        var coveredCount = 0;
         for (var i = 0; i < n; ++i)
         {
             for (var j = 0; j < n; ++j)
             {
-                if (!coverColumns[j] && !coverRows[i] && graph.Edges[i, j] == 0)
+                if (independentInRow[i] == -1 && independentInColumn[j] == -1 && graph.Edges[i, j] == 0)
                 {
-                    coverColumns[j] = true;
-
                     independentInRow[i] = j;
-                    IndependentInColumn[j] = i;
-
-                    ++coveredCount;
+                    independentInColumn[j] = i;
 
                     break;
                 }
             }
         }
+        
+        var coveredCount = 0;
+        for (var i = 0; i < n; ++i)
+        {
+            if(independentInColumn[i] != -1)
+            {
+                coverColumns[i] = true;
+                ++coveredCount;
+            }
+        }
 
-        var result = new CrossOutResult(independentInRow, IndependentInColumn, graph, coverColumns, coverRows, markedInRow);
+        var result = new CrossOutResult(independentInRow, independentInColumn, graph, coverColumns, coverRows, markedInRow);
         return Iterate(result);
     }
 
     public CrossOutResult Iterate(CrossOutResult previous)
     {
         var n = previous.Graph.VertexCount;
-        var coveredCount = previous.CoveredCount;
-
-        if (coveredCount == n)
-        {
-            return previous;
-        }
 
         var marked = previous.MarkedInRow;
         (int Row, int Column)? found = null;
@@ -87,6 +106,11 @@ public class HungarianMatching
                 }
             }
             if (found != null) break;
+        }
+        
+        if (found == null)
+        {
+            return previous;
         }
 
         var column = previous.IndependentInRow[found!.Value.Row];
@@ -125,9 +149,11 @@ public class HungarianMatching
         }
         for (int i = 0; i < n; ++i)
         {
+            // remove all marks
             previous.MarkedInRow[i] = -1;
+            // remove all lines and add columns containing independent zeros
             previous.CoverRows[i] = false;
-            previous.CoverColumns[i] = previous.IndependentInColumn[i] != -1;
+            previous.CoverColumns[i] = (previous.IndependentInColumn[i] != -1);
         }
 
         return Iterate(previous);
@@ -215,7 +241,7 @@ public class HungarianMatching
     {
         var n = res.Graph.VertexCount;
 
-        if (res.CoveredCount == n)
+        if (res.CountCovered() == n)
         {
             return res;
         }
@@ -225,7 +251,7 @@ public class HungarianMatching
         {
             for (var j = 0; j < n; ++j)
             {
-                if (res.Graph.Edges[i, j] < min)
+                if (res.Graph.Edges[i, j] < min && !res.CoverRows[i] && !res.CoverColumns[j])
                 {
                     min = res.Graph.Edges[i, j];
                 }
