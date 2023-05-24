@@ -26,6 +26,7 @@ try
     var matching = new HungarianMatching();
 
     var text = writer.Write(matching.Match(graph));
+    // var text = writer.Write(new RandomMatching(graph));
     Console.Write(text);
 
     var outputFile = new FileInfo(Path.GetFileNameWithoutExtension(file.Name) + "-output.txt");
