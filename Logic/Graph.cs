@@ -1,20 +1,10 @@
 namespace Logic;
 
-
-public record Edge(int Start, int End, int Weight)
-{
-    public IEnumerable<int> Vertices { get; } = new[] { Start, End };
-
-    public string SimpleToString()
-    {
-        return $"{Start} {End} {Weight}";
-    }
-}
-
-
 public record Graph(int[,] Edges)
 {
     public int VertexCount { get; } = Edges.GetLength(0);
+
+    public int MissingWeight { get; set; }
 
     public static Graph FromNeighbourLists(List<List<int?>> edges)
     {
@@ -41,6 +31,6 @@ public record Graph(int[,] Edges)
             }
         }
 
-        return new Graph(fullEdges);
+        return new Graph(fullEdges) { MissingWeight = missingWeight };
     }
 }

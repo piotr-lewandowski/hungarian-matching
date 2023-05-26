@@ -6,23 +6,23 @@ public record Matching(List<Edge> Edges, Graph Graph)
 
     public bool IsPerfect()
     {
-        var n = Graph.VertexCount;
-        var seenLeft = new bool[n];
-        var seenRight = new bool[n];
+        return Edges.All(e => e.Weight != Graph.MissingWeight);       
+    }
 
-        foreach(var e in  Edges)
+    public bool IsEqualTo(Matching m)
+    {
+        if (m.Edges.Count != this.Edges.Count) return false;
+
+        var ourEdges = Edges.OrderBy(e => e.Start).ToArray();
+        var theirEdges = m.Edges.OrderBy(e => e.Start).ToArray();
+
+        var weightEqual = m.Weight == this.Weight;
+        var edgesEqual = true;
+        for (var i = 0; i < Edges.Count; ++i)
         {
-            seenLeft[e.Start] = true;
-            seenRight[e.End] = true;
+            edgesEqual = edgesEqual && (ourEdges[i] == theirEdges[i]);
         }
 
-        var all = true;
-
-        for(var i=0; i<n; ++i)
-        {
-            all &= seenLeft[i] && seenRight[i];
-        }
-
-        return all;
+        return edgesEqual && weightEqual;
     }
 }

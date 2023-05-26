@@ -10,7 +10,7 @@ if (args.Length != 1)
 var fileArg = args[0];
 var file = new FileInfo(fileArg);
 
-if(!file.Exists) 
+if (!file.Exists)
 {
     Console.Error.WriteLine("Input file doesn't exist.");
     return;
@@ -24,11 +24,13 @@ try
     var graph = reader.ReadSingle(file.FullName);
 
     var matching = new HungarianMatching();
+    var match = matching.Match(graph);
 
-    var text = writer.Write(matching.Match(graph));
-    // var text = writer.Write(new RandomMatching(graph));
-    Console.Write(text);
+    var text = match.IsPerfect()
+        ? writer.Write(match)
+        : "Input graph does not have a perfect matching.";
 
+    Console.WriteLine(text);
     var outputFile = new FileInfo(Path.GetFileNameWithoutExtension(file.Name) + "-output.txt");
     using var textWriter = outputFile.CreateText();
     textWriter.Write(text);

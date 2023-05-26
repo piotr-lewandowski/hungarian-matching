@@ -234,7 +234,7 @@ public class HungarianMatching
             result.Add(new(row, column, weight));
         }
 
-        return new(result, new(originalWeights));
+        return new(result, new(originalWeights) { MissingWeight = graph.MissingWeight } );
     }
 
     public CrossOutResult IterateCover(CrossOutResult res)
